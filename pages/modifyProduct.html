@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta nmame="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modify Page</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>Admin Page</h1>
+        <div class="form-group">
+            <label for="category">Select Category</label>
+            <select class="form-control" id="category">
+      <option>Select category</option>
+      <option value="1">category 1</option>
+      <option value="2">Category 2</option>
+      <option value="3">Category 3</option>
+    </select>
+        </div>
+        <div class="card">
+            <div class="card-header">
+                Product List
+            </div>
+            <div class="card-body">
+                <ul class="list-group" id="productList">
+                </ul>
+            </div>
+        </div>
+        <div class="card mt-4" id="productDetails" style="display: none;">
+            <div class="card-header">
+                Product Details
+            </div>
+            <div class="card-body">
+                <form id="productForm">
+                    <input type="hidden" id="productId">
+                    <div class="form-group">
+                        <label for="productName">Product Name</label>
+                        <input type="text" class="form-control" id="productName">
+                    </div>
+                    <div class="form-group">
+                        <label for="productDescription">Description</label>
+                        <textarea class="form-control" id="productDescription"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="productPrice">Price</label>
+                        <input type="number" class="form-control" id="productPrice">
+                    </div>
+                    <div class="form-group">
+                        <label for="productQuantity">Quantity</label>
+                        <input type="number" class="form-control" id="productQuantity">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Update Product</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+        let productsByCategory = {
+            "1": [],
+            "2": [],
+            "3": []
+        };
+        async function populateProductList(category) {
+            const productList = document.getElementById("productList");
+            productList.innerHTML = "";
+            const response = await fetch(`http://localhost:3000/pdt?category=${category}`, {
+                    method: 'GET',
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        alert('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    productsByCategory[category] = data;
+                })
+                .catch(error => {
+                    console.error('Error during addition:', error);
+                });
+            console.log(productsByCategory[category]);
+
+
+            if (productsByCategory[category]) {
+                productsByCategory[category].forEach(product => {
+                    const li = document.createElement("li");
+                    li.className = "list-group-item";
+                    li.textContent = product.name;
+                    li.onclick = function() {
+                        showProductDetails(product);
+                    };
+                    productList.appendChild(li);
+                });
+            } else {
+                const li = document.createElement("li");
+                li.className = "list-group-item";
+                li.textContent = "No products found for this category";
+                productList.appendChild(li);
+            }
+        }
+
+        function showProductDetails(product) {
+            console.log(product);
+            document.getElementById("productDetails").style.display = "block";
+            document.getElementById("productId").value = product._id;
+            document.getElementById("productName").value = product.name;
+            document.getElementById("productDescription").value = product.description;
+            document.getElementById("productPrice").value = product.price;
+            document.getElementById("productQuantity").value = product.quantity;
+        }
+        document.getElementById("category").addEventListener("change", function() {
+            const selectedCategory = this.value;
+            populateProductList(selectedCategory);
+        });
+        document.getElementById("productForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+            updateProduct();
+        });
+
+        async function updateProduct() {
+            const productId = document.getElementById("productId").value;
+            const productName = document.getElementById("productName").value;
+            const productDescription = document.getElementById("productDescription").value;
+            const productPrice = parseFloat(document.getElementById("productPrice").value);
+            const productQuantity = parseInt(document.getElementById("productQuantity").value);
+
+            const selectedCategory = document.getElementById("category").value;
+            const products = productsByCategory[selectedCategory];
+            const response = await fetch(`http://localhost:3000/pdt/${productId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: productName,
+                        description: productDescription,
+                        price: productPrice,
+                        quantity: productQuantity
+                    })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        alert('Network response was not ok');
+                    }
+                    alert('Product updated successfully');
+                    return response.json();
+                })
+        }
+    </script>
+
+</body>
+
+</html>

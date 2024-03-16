@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Product</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>Add Product</h1>
+        <div class="card">
+            <div class="card-header">
+                Add Product
+            </div>
+            <div class="card-body">
+                <form>
+                    <div class="form-group">
+                        <label for="productName">Product Name</label>
+                        <input type="text" class="form-control" id="productName" placeholder="Enter product name">
+                    </div>
+                    <div class="form-group">
+                        <label for="category">Category List</label>
+                        <select class="form-control" id="category">
+                        <option>Select category</option>
+                        <option class="list-group-item">Category 1</option>
+                        <option class="list-group-item">Category 2</option>
+                        <option class="list-group-item">Category 3</option>
+          </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="description">Description</label>
+                        <textarea class="form-control" id="description" rows="3" placeholder="Enter product description"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="price">Price</label>
+                        <input type="number" class="form-control" id="price" placeholder="Enter product price" min="0" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="quantity">Quantity</label>
+                        <input type="number" class="form-control" id="quantity" placeholder="Enter product quantity" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="picture">Picture</label>
+                        <input type="file" class="form-control-file" id="picture">
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="addProduct()">Add Product</button>
+                </form>
+            </div>
+        </div>
+
+        <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@popperjs/core.min.js"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+        <script>
+            function addProduct() {
+                const productName = document.getElementById("productName").value;
+                const description = document.getElementById("description").value;
+                const price = document.getElementById("price").value;
+                const quantity = document.getElementById("quantity").value;
+                const picture = document.getElementById("picture").files[0];
+                const formData = new FormData()
+                formData.append("img", picture)
+                formData.append("name", productName)
+                formData.append("description", description)
+                formData.append("price", price)
+                formData.append("quantity", quantity)
+
+                if (productName && price && quantity) {
+                    const response = fetch("http://localhost:3000/pdt", {
+                            method: 'POST',
+                            body: formData
+                        })
+                        .then(response => {
+                            if (response.ok) {
+                                alert("product added")
+                            }
+                            return response.json();
+                        })
+                        .catch(error => {
+                            console.error('Error during addition:', error);
+                        });
+                } else {
+                    alert("Please fill in all required fields!");
+                }
+            }
+        </script>
+
+</body>
+
+</html>
