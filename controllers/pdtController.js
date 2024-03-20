@@ -1,31 +1,44 @@
 const Product = require("../models/Product")
-const getAll = async(req, res) => {
-    const qCategory = req.query.category;
+const category = require("../models/category")
+const addCategory = async(req, res) => {
+    const name = req.body.name;
     try {
-        let products;
-        if (qCategory) {
-            products = await Product.find({
-                category: {
-                    $in: [qCategory],
-                }
-            });
-        } else {
-            products = await Product.find();
+
+        const existingCategory = await category.findOne({ where: { name } });
+        if (existingCategory) {
+            return res.status(400).json({ error: 'Category already exists' });
         }
-        res.status(200).json(products);
-    } catch (err) {
-        res.status(500).json(err)
+        const Category = await category.create({ name });
+
+        res.status(201).json(Category);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+}
+const getAll = async(req, res) => {
+
+    try {
+        const products = await Product.find()
+        res.json(products);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
 }
 const add = async(req, res) => {
+    const { id } = req.params;
     try {
-
+        const Category = await category.findById(id);
+        if (!Category) {
+            return res.status(404).json({ error: `Category with ID ${id} not found` });
+        }
         const newProduct = new Product({
             name: req.body.name,
             description: req.body.description,
             price: req.body.price,
             quantity: req.body.quantity,
-            image: `http://localhost:3000/${req.file.filename}`
+            image: `http://localhost:3000/${req.file.filename}`,
+            category: id
+
         })
         await newProduct.save()
         return res.status(201).json("product added")
@@ -71,5 +84,6 @@ module.exports = {
     modify,
     remove,
     getAll,
-    getOne
+    getOne,
+    addCategory
 }
